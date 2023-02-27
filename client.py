@@ -2,7 +2,7 @@ import speech_recognition as sr
 import socket
 
 voice_rec = sr.Recognizer()
-voice_input = sr.Microphone()
+voice_input = sr.Microphone(device_index=6)
 
 server_addr = input("Enter server address or hostname : ")
 
@@ -12,13 +12,13 @@ client_sock.connect((server_addr, 57600))
 
 client_side_exit = False
 
-while client_side_exit == False:
-	try:
-		with voice_input as mic:
+with voice_input as mic:
+	while client_side_exit == False:
+		try:
 			voice_rec.adjust_for_ambient_noise(mic)
 			audio_clip = voice_rec.listen(mic, phrase_time_limit = 1)
 		
-			recognized_audio = voice_rec.recognize_sphinx(audio_clip)
+			recognized_audio = voice_rec.recognize_google_cloud(audio_clip, language = 'en-IN', credentials_json="credentials.json")
 
 			recognized_audio = recognized_audio.lower()
 
@@ -33,5 +33,5 @@ while client_side_exit == False:
 				if "exit" in recognized_audio:
 					client_side_exit = True
 
-	except sr.UnknownValueError:
-		print("Could not recognize audio")
+		except sr.UnknownValueError:
+			print("Could not recognize audio")
