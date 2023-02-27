@@ -76,6 +76,12 @@ def drone_ascend():
 	vel_z = 0.5
 	send_ned_velocity(vel_x, vel_y, vel_z)
 
+def drone_north():
+	vel_x = 0.5
+	vel_y = 0
+	vel_z = 0
+	send_ned_velocity(vel_x, vel_y, vel_z)
+
 def drone_exit():
 	disarm_drone()
 	client.close()
@@ -93,6 +99,7 @@ drone_command_map = {
 	"arm": arm_drone,
 	"disarm": disarm_drone,
 	"up": drone_ascend,
+	"north": drone_north,
 	"exit": drone_exit
 }
 
