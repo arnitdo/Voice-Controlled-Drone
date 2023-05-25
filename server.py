@@ -21,6 +21,8 @@ server_sock.bind(
 
 server_sock.listen()
 
+print("Waiting for inbound connection!")
+
 (client, addr) = server_sock.accept()
 print(f"Found inbound connection from {addr}")
 
@@ -55,12 +57,25 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z):
 	)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
 def arm_drone():
-	is_armable = vehicle.is_armable
-	print(f"Drone armable status: {is_armable}")
-	vehicle.arm()
+	#while vehicle.is_armable == False:
+	#	print(f"Drone armable status: {vehicle.is_armable}")
+	#	time.sleep(1)
+
+	#vehicle.mode = dronekit.VehicleMode("GUIDED")
+	#while vehicle.mode != "GUIDED":
+	#	print("Waiting for mode: ", vehicle.mode)
+	#	time.sleep(1)
+
+	#print("Mode: ", vehicle.mode)
+	vehicle.armed = True
 
 def disarm_drone():
+	#vehicle.mode = dronekit.VehicleMode("AUTO")
+	#while vehicle.mode != "AUTO":
+	#	print("Waiting for auto mode")
+	
 	vehicle.disarm()
+	print("Drone disarmed")
 
 def drone_ascend():
 	# Set up velocity mappings
@@ -71,10 +86,15 @@ def drone_ascend():
 	# velocity_z < 0 => ascend
 	# velocity_z > 0 => descend
 
-	vel_x = 0
-	vel_y = 0
-	vel_z = 0.5
-	send_ned_velocity(vel_x, vel_y, vel_z)
+	#vel_x = 0
+	#vel_y = 0
+	#vel_z = 20
+	#for _ in range(5):
+	#	time.sleep(1)
+	#	send_ned_velocity(vel_x, vel_y, vel_z)
+
+	#send_ned_velocity(0, 0, 0)
+	vehicle.simple_takeoff(5)
 
 def drone_north():
 	vel_x = 0.5
@@ -83,20 +103,20 @@ def drone_north():
 	send_ned_velocity(vel_x, vel_y, vel_z)
 
 def drone_exit():
+	vehicle_exit = True
 	disarm_drone()
 	client.close()
 	server_sock.close()
-	vehicle_exit = True
 
 def handle_drone_command(command_str):
 	for command in drone_command_map:
 		if command.lower() in command_str.lower():
 			mapped_command = drone_command_map[command]
 			mapped_command()
-			time.sleep(2)
+			print("Executing command :", command)
 
 drone_command_map = {
-	"arm": arm_drone,
+	"start": arm_drone,
 	"disarm": disarm_drone,
 	"up": drone_ascend,
 	"north": drone_north,
@@ -105,9 +125,14 @@ drone_command_map = {
 
 
 while vehicle_exit == False:
-	data = client.recv(1024)
-	inbound_data = data.decode()
+	try:
+		data = client.recv(1024)
+		inbound_data = data.decode()
+		# inbound_data = input("Command")
+		print(f"Inbound data : {inbound_data}")
 
-	handle_drone_command(inbound_data)
+		handle_drone_command(inbound_data)
+	except KeyboardInterrupt:
+		drone_exit()
 
 print("Clean exit!")	

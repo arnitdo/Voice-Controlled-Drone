@@ -2,7 +2,10 @@ import speech_recognition as sr
 import socket
 
 voice_rec = sr.Recognizer()
-voice_input = sr.Microphone(device_index=6)
+for pair in enumerate(sr.Microphone.list_microphone_names()):
+	print(pair)
+
+voice_input = sr.Microphone()
 
 server_addr = input("Enter server address or hostname : ")
 
@@ -15,12 +18,9 @@ client_side_exit = False
 with voice_input as mic:
 	while client_side_exit == False:
 		try:
-			voice_rec.adjust_for_ambient_noise(mic)
 			audio_clip = voice_rec.listen(mic, phrase_time_limit = 1)
 		
 			recognized_audio = voice_rec.recognize_google_cloud(audio_clip, language = 'en-IN', credentials_json="credentials.json")
-
-			recognized_audio = recognized_audio.lower()
 
 			print("Recognized audio :", recognized_audio)
 
